@@ -1,6 +1,6 @@
 import React from "react";
 
-function Hearder(){
+function Header(){
     return(
         <header>
             <h1>Keeper App</h1>
@@ -8,4 +8,4 @@ function Hearder(){
     );
 }
 
-export default Hearder;
+export default Header;
