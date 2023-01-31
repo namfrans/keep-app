@@ -34,7 +34,7 @@ function CreateNote(props) {
         <input onChange={handleChange} name="title" placeholder="Title" type={isExpanded ? "text" : "hidden"} value={note.title}/>
         <textarea onChange={handleChange} onClick={expand} name="content" placeholder="Take a note..." value={note.content} rows={isExpanded ? "3" : "1"}/>
         <Zoom in={isExpanded}>
-          <Fab color="primary" aria-label="add" onClick={()=>{props.onAddNote(note, setNote({title:"", content:""}));}} >
+          <Fab color="#130f40" aria-label="add" onClick={()=>{props.onAddNote(note, setNote({title:"", content:""}));}} >
             <AddIcon />
           </Fab>
         </Zoom>

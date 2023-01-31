@@ -7,7 +7,7 @@ function Note(props){
         <div className="note">
             <h1>{props.noteTitle}</h1>
             <p>{props.noteContent}</p>
-            <Fab color="danger" onClick={()=>{props.onDelete(props.id)}}>
+            <Fab onClick={()=>{props.onDelete(props.id)}}>
                 <DeleteIcon />
             </Fab>
         </div>
