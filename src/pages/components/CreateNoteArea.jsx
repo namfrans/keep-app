@@ -3,15 +3,13 @@ import Fab from '@mui/material/Fab';
 import Zoom from '@mui/material/Zoom';
 import AddIcon from '@mui/icons-material/Add';
 
-
 function CreateNote(props) {
   const [note, setNote] = useState({
     title:"",
     content:""
   });
-  
   const [isExpanded, setExpansion] = useState(false);
-
+    
   const handleChange = (event) =>{
     const {name, value} = event.target;
 
@@ -23,6 +21,7 @@ function CreateNote(props) {
     })
     event.preventDefault();
   }
+
 
   const expand = () =>{
     setExpansion(true);

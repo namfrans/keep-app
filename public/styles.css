@@ -1,3 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 * {
   padding: 0;
   margin: 0;
@@ -25,6 +29,22 @@ header h1 {
   color: #fff;
   font-family: "McLaren", cursive;
   font-weight: 200;
+}
+
+.header_login_button {
+  background-color: #130f40;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  padding: 8px 16px;
+  font-size: 1.2em;
+  cursor: pointer;
+  outline: none;
+  /* Align to the left of the hearder */
+  position: absolute;
+  right: 0; 
+  top: 0;
+  margin: 16px;
 }
 
 footer {
