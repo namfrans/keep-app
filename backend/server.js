@@ -12,12 +12,13 @@ const passport = require("passport");
 const { redirect } = require("react-router-dom");
 const passportLocalMongoose = require("passport-local-mongoose");
 const findOrCreate = require("mongoose-findorcreate");
+const { author } = require('./models/Note.js');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const app = express();
 const MONGODB_USERNAME = process.env['MONGODB_USERNAME'];
 const MONGODB_PASSWORD = process.env['MONGODB_PASSWORD'];
 const DATABASE = process.env['DATABASE'];
-var currentUser = {};
+let currentUser = {};
 
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(express.static("public"));
@@ -37,7 +38,6 @@ passport.use(
         scope: ['profile'],
     },
     function(accessToken, refreshToken, profile, done) {
-        console.log(profile);
         User.findOne({ googleId: profile.id }).then(exsitingUser => {
             if (exsitingUser) {
                 done(null, exsitingUser);
@@ -64,11 +64,14 @@ passport.deserializeUser((id, done)=>{
       });
 });
 
-
+//Middleware
 app.use(session({
     secret:"codeninjashelby",
-    resave:false,
-    saveUninitialized:false
+    resave:true,
+    saveUninitialized:false,
+    cookie:{
+        expires:60000
+    }
 }));
 
 app.use(passport.initialize());
@@ -86,6 +89,7 @@ app.use(
 app.use((req, res, next) => {
     const user = req.user;
     currentUser = user;
+    console.log(currentUser);
     next();
 });
 
@@ -94,7 +98,7 @@ router.get(
     "/auth/google",
     passport.authenticate("google", {
         failureRedirect:"/login/failed",
-        scope: ["profile", "email"]
+        scope: ["profile"]
     })
 )
 
@@ -130,53 +134,70 @@ app.get("/login/failed", (req, res)=>{
         message:"Log in failure"
     })
 })
-//Notes operations  
-app.get('/notes',
-    (req, res) =>{
-        const userId = req.body.userId;
+//Notes operations 
+//save added note
+app.post('/notes', (req, res) =>{
+        console.log(req.user);
         const note = new Note({
             title: req.body.title,
-            content: req.body.content
+            content: req.body.content,
+            author:req.user._id
         });
 
         //search for user and add note to user on mongodb
-        User.findOneAndUpdate({ googleId: userId }, { $push: { notes: note } },
-            (err, doc) => {
-                if (err) {
-                    console.log("Something went wrong adding note!");
-                }
-                console.log(doc);
+        if (!req.user) {
+            res.status(403).json({ error: true, message: "Not Authorized" });
+            return;
+        }
+
+        note.save((err, savedNote) => {
+            if (err) {
+                res.status(500).json({ error: true, message: err });
+            } else {
+                res.status(200).json({ error: false, message: "Note added", data: savedNote });
             }
-        )
+        });
+        res.redirect(process.env['CLIENT_URL']);
     }
 );
 
-app.post('/users/notes',
+//get added notes
+app.get('/notes/show',
     (req, res) =>{
-        //find loggedin user from mongodb
-        const userId = currentUser['googleId'];
-        //find user
-        User.findOne({ googleId: userId }, (err, user) => {
-            if (!err) {
-                res.send(user);
+        if (!req.user) {
+            res.status(403).json({ error: true, message: "Not Authorized" });
+            return;
+        }
+        //find user saved notes
+        Note.find({ author: req.user._id }, (err, notes) => {
+            if (err) {
+                res.status(500).json({ error: true, message: err });
             } else {
-                console.log(err);
+                res.status(200).json({ error: false, message: "Notes retrieved", data: notes });
             }
         });
     }
 );
-app.get("/notes/:noteId",
+//delete selected note
+app.delete("/notes/:noteId",
     (req, res) =>{
-        const noteToDelete = req.params.noteId;
-        const userId = currentUser['googleId'];
-        User.findOneAndUpdate({googleId:userId},{$pull: {notes:{id: noteToDelete}}}, (err, noteFound)=>{
-            if(!err){
-                res.redirect(process.env['CLIENT_URL']);
+        if (!req.user) {
+            res.status(403).json({ error: true, message: "Not Authorized" });
+            return;
+        }
+        Note.findOneAndDelete({ id: req.params.noteId, author: req.user._id }, (err, deletedNote) => {
+            if (err) {
+                res.status(500).json({ error: true, message: err });
+            } else if (!deletedNote) {
+                res.status(404).json({ error: true, message: "Note not found" });
+            } else {
+                res.status(200).json({ error: false, message: "Note deletion success", data:deletedNote})
             }
         })
+        res.redirect(process.env['CLIENT_URL']);
     }
 )
-
+//outh callback
 app.get("/auth/google/callback",
     passport.authenticate("google"),
     async (req, res) => {

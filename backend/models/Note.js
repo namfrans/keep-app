@@ -6,6 +6,10 @@ const noteSchema = {
     content:{
       type:String,
       required:true
+    },
+    author:{
+      type:String,
+      required:true
     }
   }
 

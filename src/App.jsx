@@ -32,10 +32,9 @@ export default function App(){
     
     useEffect(()=>{
         getUser();
-    }, []);
+    });
 
     useEffect(()=>{
-        console.log("I work but fix me somehow")
         console.log(user);
     }, [user]);
     return (
@@ -49,7 +48,7 @@ export default function App(){
                 <Routes>
                     <Route 
                         exact path="/"
-                        element={user ? <Home userDetails={user}/> : <Navigate to="/login"/>}
+                        element={user ? <Home /> : <Navigate to="/login"/>}
                     ></Route>
                     <Route 
                         exact path="/login"

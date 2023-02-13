@@ -3,8 +3,9 @@ import Header from "./components/Header";
 import Footer from "./components/Footer";
 import Note from "./components/Note";
 import CreateNote from "./components/CreateNoteArea";
+import axios from 'axios';
 
-function Home(props) {
+function Home() {
   const [notes, setNotes] = useState([]);
   
   const handleLogout = () =>{
@@ -14,69 +15,49 @@ function Home(props) {
     );
   };
 
+  const clientEP = axios.create({
+    baseURL: `${process.env.REACT_APP_API_URL}/notes`
+  });
+
   const handleAddNote = async (note) => {
     try {
-      const url = `${process.env.REACT_APP_API_URL}/notes`;
-      const response = await fetch(url, {
-        method: "POST",
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json'
-        },
-        credentials: 'include',
-        body: JSON.stringify({
-          userId: props.userDetails['googleId'],
-          title: note.title,
-          content: note.content
-        })
-      });
-      const data = await response.json();
-      console.log(data);
+      let response = clientEP.post('', {
+        title: note.title,
+        content: note.content,
+      })
+      setNotes([response.data, ...notes]);
+      console.log(response.data);
     } catch (err) {
-      console.error(err);
+      console.log(err);
     }
-  };
+  };  
 
   const handleGetNotes = async () => {
     try {
-      const url = `${process.env.REACT_APP_API_URL}/users/notes`;
-      const response = await fetch(url, {
-        method: "GET",
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json'
-        },
-        credentials: 'include'
-      });
-      const data = await response.json();
-      console.log(data);
-      setNotes(data.notes);
+      let response = await clientEP.get('/show');
+      setNotes(response.data);
     } catch (err) {
-      console.error(err);
+      console.log(err);
     }
   };
 
   const handleDeleteNote = async (id) => {
     try {
-      const url = `${process.env.REACT_APP_API_URL}/notes/${id}`;
-      const response = await fetch(url, {
-        method: "DELETE",
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json'
-        },
-        credentials: 'include'
-      });
-      const data = await response.json();
-      console.log(data);
+      const response = await clientEP.delete(`${id}`);
+      setNotes(
+         notes.filter((note) => {
+            return note.id !== id;
+         })
+      );
+      console.log(response);
     } catch (err) {
-      console.error(err);
+      console.log(err);
     }
   };
 
   useEffect(() => {
     handleGetNotes();
-  }, []);
+  });
 
   return (
     <div>
