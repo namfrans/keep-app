@@ -67,7 +67,7 @@ passport.deserializeUser((id, done)=>{
 //Middleware
 app.use(session({
     secret:"codeninjashelby",
-    resave:true,
+    resave:false,
     saveUninitialized:false,
     cookie:{
         expires:60000
@@ -103,7 +103,10 @@ router.get(
 )
 
 router.get("/auth/google/callback", passport.authenticate("google"));
-
+//
+// app.get("/login", (req, res)=>{
+    
+// })
 //logout with callback
 app.get("/logout", (req, res)=>{
     req.logout((err)=>{
@@ -137,15 +140,15 @@ app.get("/login/failed", (req, res)=>{
 //Notes operations 
 //save added note
 app.post('/notes', (req, res) =>{
-        console.log(req.user);
+        console.log(currentUser);
         const note = new Note({
             title: req.body.title,
             content: req.body.content,
-            author:req.user._id
+            author:currentUser["_id"]
         });
 
         //search for user and add note to user on mongodb
-        if (!req.user) {
+        if (!currentUser) {
             res.status(403).json({ error: true, message: "Not Authorized" });
             return;
         }
@@ -164,12 +167,12 @@ app.post('/notes', (req, res) =>{
 //get added notes
 app.get('/notes/show',
     (req, res) =>{
-        if (!req.user) {
+        if (!currentUser) {
             res.status(403).json({ error: true, message: "Not Authorized" });
             return;
         }
         //find user saved notes
-        Note.find({ author: req.user._id }, (err, notes) => {
+        Note.find({ author: req.user }, (err, notes) => {
             if (err) {
                 res.status(500).json({ error: true, message: err });
             } else {
@@ -181,7 +184,7 @@ app.get('/notes/show',
 //delete selected note
 app.delete("/notes/:noteId",
     (req, res) =>{
-        if (!req.user) {
+        if (!currentUser) {
             res.status(403).json({ error: true, message: "Not Authorized" });
             return;
         }

@@ -16,16 +16,21 @@ function Home() {
   };
 
   const clientEP = axios.create({
-    baseURL: `${process.env.REACT_APP_API_URL}/notes`
+    withCredentials: true,
+    baseURL: `${process.env.REACT_APP_API_URL}`
   });
 
   const handleAddNote = async (note) => {
     try {
-      let response = clientEP.post('', {
+      let response = clientEP.post('/notes', {
         title: note.title,
         content: note.content,
       })
-      setNotes([response.data, ...notes]);
+      
+      response.data && setNotes( prevNotes =>{
+        return [response.data, ...prevNotes]
+      })
+
       console.log(response.data);
     } catch (err) {
       console.log(err);
@@ -34,8 +39,8 @@ function Home() {
 
   const handleGetNotes = async () => {
     try {
-      let response = await clientEP.get('/show');
-      setNotes(response.data);
+      let response = await clientEP.get('/notes/show');
+      response.data && setNotes(response.data);
     } catch (err) {
       console.log(err);
     }
@@ -43,12 +48,13 @@ function Home() {
 
   const handleDeleteNote = async (id) => {
     try {
-      const response = await clientEP.delete(`${id}`);
-      setNotes(
-         notes.filter((note) => {
-            return note.id !== id;
-         })
-      );
+      const response = await clientEP.delete(`/notes/${id}`);
+      setNotes(prevNotes => {
+        return prevNotes.filter((note, index) => {
+              return index !== id;
+          }
+        )
+      });
       console.log(response);
     } catch (err) {
       console.log(err);
